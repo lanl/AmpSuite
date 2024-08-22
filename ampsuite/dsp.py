@@ -194,41 +194,6 @@ def find_nearest_index(array, value):
     return array[idx],idx
 
 
-def mad(x):
-    """
-    Compute the Median Absolute Deviation (MAD) of the input array x.
-    MAD is defined as: MEDIAN(ABS(X-MEDIAN(X)))
-    
-    Parameters:
-    x (array-like): Input array.
-    
-    Returns:
-    mad (float): The Median Absolute Deviation of the input array.
-    """
-    return np.median(np.abs(x-np.median(x)))
-
-def madn(x,k=1.4826):
-    """
-    Compute a normalized Median Absolute Deviation (MAD) of the input array.
-    The MAD is normalized by a constant scale factor k which depends on the 
-    distribution. For normally distributed data, k is typically 1.4826.
-    
-    The MAD may be used similarly to how one would use the standard deviation  
-    of the average. In order to use the MAD as a consistent estimator for the 
-    estimation of the standard deviation sigma, one multiplies
-    sigma = MEDIAN(ABS(X-MEDIAN(X))) * k
-    
-    Parameters:
-    x (array-like): Input array.
-    k (float): Constant scale factor, which depends on the distribution (default=1.4826).
-    
-    Returns:
-    madn (float): The normalized Median Absolute Deviation of the input array.
-    """
-    return (np.median(np.abs(x-np.median(x))))*k
-
-
-
 def taper(data, max_percentage, npts, sampling_rate, type='hann', max_length=None,side='both', **kwargs):
         """
         Taper the trace.
@@ -407,185 +372,7 @@ def taper_adjust(taper_percent, window_length):
         #number of seconds to adjust arrival for tapering data
         time_adjust = (((window_length)/taper_adjust)-(window_length))/2
         return time_adjust
-    
-def pad_zeros(x,npts):
-    """
-    Pad an array with zeros at the end.
-    
-    Parameters: 
-    x (array-like): Input array.
-    npts (int): Number of zeros to pad.
-    
-    Returns:
-    padded_array (array): Input array padded with zeros at the end.
-    """
-    return np.pad(x, (0, npts), 'constant')
 
-def mtspec_pad(x,nfft):
-    """
-    Pad an array with zeros to reach the desired length for an FFT.
-    
-    Parameters:
-    x (array-like): Input array.
-    nfft (int): Desired length of the FFT.
-    
-    Returns:
-    x_out (array): Input array padded with zeros to the desired FFT length.
-    """
-    if(nfft > len(x)):
-        npts_diff = abs(len(x) - nfft)
-        x_out =  pad_zeros(x, npts_diff)
-    else:
-        x_out = x
-    return x_out
-    
-
-def pad_with(vector, pad_width, iaxis, kwargs):
-    """
-    Pad an array with a specified value.
-    
-    Parameters:
-    vector (array-like): Input array to pad.
-    pad_width (tuple): Number of values padded to the edges of each axis.
-    iaxis (int): Axis along which to pad.
-    kwargs (dict): Keyword arguments, expecting 'padder' which is the value to pad with.
-    
-    Returns:
-    vector (array): Padded array.
-    """
-    pad_value = kwargs.get('padder', 0)
-    vector[:pad_width[0]] = pad_value
-    if pad_width[1] != 0:                      # <-- the only change (0 indicates no padding)
-        vector[-pad_width[1]:] = pad_value
-
-def pad_along_axis(array: np.ndarray, target_length: int, axis: int = 0):
-    """
-    Pad an array with zeros along a specified axis to a target length.
-    
-    Parameters:
-    array (np.ndarray): Input array to pad.
-    target_length (int): The length to pad the array to.
-    axis (int): The axis along which to pad (default=0).
-    
-    Returns:
-    padded_array (np.ndarray): The padded array.
-    """
-    pad_size = target_length - array.shape[axis]
-    if pad_size <= 0:
-        return array
-    npad = [(0, 0)] * array.ndim
-    npad[axis] = (0, pad_size)
-    return np.pad(array, pad_width=npad, mode='constant', constant_values=0)
-
-def pad_zeros_even():
-    pad_size = target_length - array.shape[axis]
-    if pad_size <= 0:
-        return array
-    npad = [(0, 0)] * array.ndim
-    npad[axis] = (0, pad_size)
-    return np.pad(array, pad_width=npad, mode='constant', constant_values=0)
-    
-def strided_app(array, window_len, step_size):  
-    """
-    Create a 2D array view into a 1D array with overlapping windows.
-    
-    Parameters:
-    array (array-like): Input 1D array.
-    window_len (int): Length of each window.
-    step_size (int): Step size between windows.
-    
-    Returns:
-    strided (array): 2D array view with overlapping windows.
-    
-    """
-    nrows = ((array.size-window_len)//step)+1
-    n = array.strides[0]
-    return np.lib.stride_tricks.as_strided(array, shape=(nrows,window_len), strides=(step*n,n))
-
-
-def movmean(array, width=1, step=1, method='roll'):
-    """
-    Compute the moving mean of an array.
-    
-    Parameters:
-    array (array-like): Input array.
-    width (int): Width of the moving window (default=1).
-    step (int): Step size between windows (default=1).
-    method (str): Method to use, either 'roll' or 'strided' (default='roll').
-    
-    Returns:
-    result (array): Moving mean of the input array.
-    """
-    # pad edge values to prepend/append to array before striding/rolling
-    array_padded = np.pad(array, (width//2, width-1-width//2), mode='edge')
-     #compute percentile (ignoring NaNs) using np.nanpercentile()
-    
-    if method == 'strided':
-        #note strided method already concatenates array
-        result = np.nanmean(strided_app(array_padded, width, step), axis=-1)
-    if method == 'roll':
-        #roll is much faster than stride, but need to code in support for step...
-        result = np.nanmean(np.concatenate(
-            [np.roll(array_padded, shift=i, axis=0)[...,None] for i in 
-             range(-n_window, n_window+1)],axis=-1),axis=-1)
-        #cut away the prepended/appended values
-        result = result[width//2:-(int(width-1-width//2))]
-    return result
-
-def movmedian(array, width=1, step=1, method='roll'):
-    """
-    Compute the moving median of an array.
-    
-    Parameters:
-    array (array-like): Input array.
-    width (int): Width of the moving window (default=1).
-    step (int): Step size between windows (default=1).
-    method (str): Method to use, either 'roll' or 'strided' (default='roll').
-    
-    Returns:  
-    result (array): Moving median of the input array.
-    """
-    # pad edge values to prepend/append to array before striding/rolling
-    array_padded = np.pad(array, (width//2, width-1-width//2), mode='edge')
-     #compute percentile (ignoring NaNs) using np.nanpercentile()
-    
-    if method == 'strided':
-        #note strided method already concatenates array
-        result = np.nanmedian(strided_app(array_padded, width, step), axis=-1)
-    if method == 'roll':
-        #roll is much faster than stride, but need to code in support for step...
-        result = np.nanmedian(np.concatenate(
-            [np.roll(array_padded, shift=i, axis=0)[...,None] for i in 
-             range(-n_window, n_window+1)],axis=-1),axis=-1)
-        #cut away the prepended/appended values
-        result = result[width//2:-(int(width-1-width//2))]
-    return result
-    
-def movrms(x, window_length, run_opt,base,unit):
-    """
-    Compute a moving window RMS for the input signal.
-    
-    Parameters:
-    x (array-like): Input signal.
-    window_length (int): Length of the moving window.
-    run_opt (str): Run option for movmean, 'same' returns same length as input, 'valid' shrinks ends.
-    base (str): Base of the logarithm, either 'log10' or something else.
-    unit (str): Unit of the input data, either 'meters' or 'nanometers'.
-    
-    Returns:
-    rms_mov_amp (array): Moving window RMS of the input signal.
-    """
-    if base == 'log10':
-        rms_mov_amp = movmean(np.square(np.ravel(x)),window_length, run_opt)
-        if unit == 'meters':
-            rms_mov_amp = np.log(rms_mov_amp)*EFACT - 9
-        elif unit == 'nanometers':
-            rms_mov_amp = np.log(rms_mov_amp)*EFACT
-    else: 
-        rms_mov_amp = movmean(np.square(np.ravel(x)),window_length, run_opt)
-    return rms_mov_amp
-
-    
 def rms(x,n_samples,base='log10',unit='meters'):
     """
     Compute the RMS of an input signal over a given window length.
@@ -726,235 +513,6 @@ def column(matrix, i):
     """
     return [row[i] for row in matrix]
 
-def _contains_nan(a, nan_policy='propagate'):
-    """
-    Check if an array contains NaN values.
-
-    Parameters:
-    a (array-like): Input array to check for NaN values.
-    nan_policy (str): Defines how to handle when input contains NaN.
-                      Options: 'propagate' (default), 'raise', 'omit'.
-
-    Returns:
-    contains_nan (bool): True if the array contains NaN values, False otherwise.
-    nan_policy (str): The nan_policy used.
-
-    Raises:
-    ValueError: If nan_policy is not one of 'propagate', 'raise', or 'omit'.
-    RuntimeWarning: If the input array could not be properly checked for NaN values.
-    """
-    policies = ['propagate', 'raise', 'omit']
-    if nan_policy not in policies:
-        raise ValueError("nan_policy must be one of {%s}" %
-                         ', '.join("'%s'" % s for s in policies))
-    try:
-        # Calling np.sum to avoid creating a huge array into memory
-        # e.g. np.isnan(a).any()
-        with np.errstate(invalid='ignore'):
-            contains_nan = np.isnan(np.sum(a))
-    except TypeError:
-        # This can happen when attempting to sum things which are not
-        # numbers (e.g. as in the function `mode`). Try an alternative method:
-        try:
-            contains_nan = np.nan in set(a.ravel())
-        except TypeError:
-            # Don't know what to do. Fall back to omitting nan values and
-            # issue a warning.
-            contains_nan = False
-            nan_policy = 'omit'
-            warnings.warn("The input array could not be properly checked for nan "
-                          "values. nan values will be ignored.", RuntimeWarning)
-
-    if contains_nan and nan_policy == 'raise':
-        raise ValueError("The input contains nan values")
-
-    return (contains_nan, nan_policy)
-
-
-# From this post : http://stackoverflow.com/a/40085052/3293881
-def strided_app(a, L, S ):  # Window len = L, Stride len/stepsize = S
-    """
-    Create a 2D array view into a 1D array with overlapping windows.
-
-    Parameters:
-    a (array-like): Input 1D array.
-    L (int): Length of each window.
-    S (int): Stride length (step size).
-
-    Returns:
-    strided (array-like): 2D array view with overlapping windows.
-    """
-    nrows = ((a.size-L)//S)+1
-    n = a.strides[0]
-    return np.lib.stride_tricks.as_strided(a, shape=(nrows,L), strides=(S*n,n))
-
-# From this post : http://stackoverflow.com/a/14314054/3293881
-def moving_average(a, n=3):
-    """
-    Compute the moving average of an array.
-
-    Parameters:
-    a (array-like): Input array.
-    n (int): Size of the moving window (default=3).
-
-    Returns:
-    output (array-like): Array of the moving average.
-    """
-    ret = np.cumsum(a, dtype=float)
-    ret[n:] = ret[n:] - ret[:-n]
-    return ret[n - 1:] / n
-
-def movmad_numpy(a, W):
-    """
-    Compute the moving median absolute deviation (MAD) of an array.
-
-    Parameters:
-    a (array-like): Input array.
-    W (int): Size of the moving window.
-
-    Returns:
-    mad (array-like): Array of the moving MAD.
-    """
-    a2D = strided_app(a,W,1)
-    return np.absolute(a2D - moving_average(a,W)[:,None]).mean(1)
-
-
-def movstd(T, m):
-    """
-    Compute the moving standard deviation of an array.
-
-    Parameters:
-    T (array-like): Input array.
-    m (int): Size of the moving window.
-
-    Returns:
-    output (array-like): Array of the moving standard deviation.
-    """
-    n = T.shape[0]
-    
-    cumsum = np.cumsum(T)
-    cumsum_square = np.cumsum(T**2)
-    
-    cumsum = np.insert(cumsum, 0, 0)               # Insert a 0 at the beginning of the array
-    cumsum_square = np.insert(cumsum_square, 0, 0) # Insert a 0 at the beginning of the array
-    
-    seg_sum = cumsum[m:] - cumsum[:-m]
-    seg_sum_square = cumsum_square[m:] - cumsum_square[:-m]
-    
-    return np.sqrt( seg_sum_square/m - (seg_sum/m)**2 )
-
-
-#taken from https://docs.scipy.org/doc/scipy-1.7.1/reference/reference/generated/scipy.stats.median_absolute_deviation.html
-def median_absolute_deviation(x, axis=0, center=np.median, scale=1.4826,
-                              nan_policy='propagate'):
-
-    """
-    Compute the median absolute deviation of the data along the given axis.
-    The median absolute deviation (MAD, [1]_) computes the median over the
-    absolute deviations from the median. It is a measure of dispersion
-    similar to the standard deviation but more robust to outliers [2]_.
-    The MAD of an empty array is ``np.nan``.
-    .. versionadded:: 1.3.0
-    Parameters
-    ----------
-    x : array_like
-        Input array or object that can be converted to an array.
-    axis : int or None, optional
-        Axis along which the range is computed. Default is 0. If None, compute
-        the MAD over the entire array.
-    center : callable, optional
-        A function that will return the central value. The default is to use
-        np.median. Any user defined function used will need to have the function
-        signature ``func(arr, axis)``.
-    scale : int, optional
-        The scaling factor applied to the MAD. The default scale (1.4826)
-        ensures consistency with the standard deviation for normally distributed
-        data.
-    nan_policy : {'propagate', 'raise', 'omit'}, optional
-        Defines how to handle when input contains nan.
-        The following options are available (default is 'propagate'):
-          * 'propagate': returns nan
-          * 'raise': throws an error
-          * 'omit': performs the calculations ignoring nan values
-    Returns
-    -------
-    mad : scalar or ndarray
-        If ``axis=None``, a scalar is returned. If the input contains
-        integers or floats of smaller precision than ``np.float64``, then the
-        output data-type is ``np.float64``. Otherwise, the output data-type is
-        the same as that of the input.
-    See Also
-    --------
-    numpy.std, numpy.var, numpy.median, scipy.stats.iqr, scipy.stats.tmean,
-    scipy.stats.tstd, scipy.stats.tvar
-    Notes
-    -----
-    The `center` argument only affects the calculation of the central value
-    around which the MAD is calculated. That is, passing in ``center=np.mean``
-    will calculate the MAD around the mean - it will not calculate the *mean*
-    absolute deviation.
-    References
-    ----------
-    .. [1] "Median absolute deviation" https://en.wikipedia.org/wiki/Median_absolute_deviation
-    .. [2] "Robust measures of scale" https://en.wikipedia.org/wiki/Robust_measures_of_scale
-    Examples
-    --------
-    When comparing the behavior of `median_absolute_deviation` with ``np.std``,
-    the latter is affected when we change a single value of an array to have an
-    outlier value while the MAD hardly changes:
-    >>> from scipy import stats
-    >>> x = stats.norm.rvs(size=100, scale=1, random_state=123456)
-    >>> x.std()
-    0.9973906394005013
-    >>> stats.median_absolute_deviation(x)
-    1.2280762773108278
-    >>> x[0] = 345.6
-    >>> x.std()
-    34.42304872314415
-    >>> stats.median_absolute_deviation(x)
-    1.2340335571164334
-    Axis handling example:
-    >>> x = np.array([[10, 7, 4], [3, 2, 1]])
-    >>> x
-    array([[10,  7,  4],
-           [ 3,  2,  1]])
-    >>> stats.median_absolute_deviation(x)
-    array([5.1891, 3.7065, 2.2239])
-    >>> stats.median_absolute_deviation(x, axis=None)
-    2.9652
-    """
-
-    #from scipy.stats._stats_py import _contains_nan
-    x = np.asarray(x)
-
-    # Consistent with `np.var` and `np.std`.
-    if not x.size:
-        return np.nan
-
-    contains_nan, nan_policy = _contains_nan(x, nan_policy)
-
-    if contains_nan and nan_policy == 'propagate':
-        return np.nan
-
-    if contains_nan and nan_policy == 'omit':
-        # Way faster than carrying the masks around
-        arr = ma.masked_invalid(x).compressed()
-    else:
-        arr = x
-
-    if axis is None:
-        med = center(arr)
-        mad = np.median(np.abs(arr - med))
-    else:
-        med = np.apply_over_axes(center, arr, axis)
-        mad = np.median(np.abs(arr - med), axis=axis)
-
-    return scale * mad
-
-def movwin(x, window):
-    shape = x.shape[:-1] + (x.shape[-1] - window + 1, window)
-    strides = x.strides + (x.strides[-1],)
-    return np.lib.stride_tricks.as_strided(x, shape=shape, strides=strides)
 
 
 def sacfft(data,sampling_rate):
@@ -1017,43 +575,81 @@ def sacfft(data,sampling_rate):
     
     return mag_fft,phase_fft,freqs
 
-# def movmean(array, width=1, step=1, method='roll'):
-#     """
-#     Compute the moving mean of an array.
-
-#     Parameters:
-#     array (array-like): Input array.
-#     width (int): Width of the moving window (default=1).
-#     step (int): Step size between windows (default=1).
-#     method (str): Method to use, either 'roll' (default) or 'strided'.
-
-#     Returns:
-#     result (array-like): Array of the moving mean.
-#     """
-#     # pad edge values to prepend/append to array before striding/rolling
-#     array_padded = np.pad(array, (width//2, width-1-width//2), mode='edge')
-#      #compute percentile (ignoring NaNs) using np.nanpercentile()
+#padding routines below
+def pad_zeros(x,npts):
+    """
+    Pad an array with zeros at the end.
     
-#     if method == 'strided':
-#         #note strided method already concatenates array
-#         result = np.nanmean(strided_app(array_padded, width, step), axis=-1)
-#     if method == 'roll':
-#         #roll is much faster than stride, but need to code in support for step...
-#         result = np.nanmean(np.concatenate(
-#             [np.roll(array_padded, shift=i, axis=0)[...,None] for i in 
-#              range(-n_window, n_window+1)],axis=-1),axis=-1)
-#         #cut away the prepended/appended values
-#         result = result[width//2:-(int(width-1-width//2))]
-#     return result
+    Parameters: 
+    x (array-like): Input array.
+    npts (int): Number of zeros to pad.
+    
+    Returns:
+    padded_array (array): Input array padded with zeros at the end.
+    """
+    return np.pad(x, (0, npts), 'constant')
 
-# def strided_app(array, window_len, step_size):  
-#     '''
-#     INPUTS:
-#         array: numpy nd.array vector
-#         window_len: length of window to evalute in samples 
-#         step_size: size of step to take
-#     '''
-#     nrows = ((array.size-window_len)//step)+1
-#     n = array.strides[0]
-#     return np.lib.stride_tricks.as_strided(array, shape=(nrows,window_len), strides=(step*n,n))
+def mtspec_pad(x,nfft):
+    """
+    Pad an array with zeros to reach the desired length for an FFT.
+    
+    Parameters:
+    x (array-like): Input array.
+    nfft (int): Desired length of the FFT.
+    
+    Returns:
+    x_out (array): Input array padded with zeros to the desired FFT length.
+    """
+    if(nfft > len(x)):
+        npts_diff = abs(len(x) - nfft)
+        x_out =  pad_zeros(x, npts_diff)
+    else:
+        x_out = x
+    return x_out
+    
+
+def pad_with(vector, pad_width, iaxis, kwargs):
+    """
+    Pad an array with a specified value.
+    
+    Parameters:
+    vector (array-like): Input array to pad.
+    pad_width (tuple): Number of values padded to the edges of each axis.
+    iaxis (int): Axis along which to pad.
+    kwargs (dict): Keyword arguments, expecting 'padder' which is the value to pad with.
+    
+    Returns:
+    vector (array): Padded array.
+    """
+    pad_value = kwargs.get('padder', 0)
+    vector[:pad_width[0]] = pad_value
+    if pad_width[1] != 0:                      # <-- the only change (0 indicates no padding)
+        vector[-pad_width[1]:] = pad_value
+
+def pad_along_axis(array: np.ndarray, target_length: int, axis: int = 0):
+    """
+    Pad an array with zeros along a specified axis to a target length.
+    
+    Parameters:
+    array (np.ndarray): Input array to pad.
+    target_length (int): The length to pad the array to.
+    axis (int): The axis along which to pad (default=0).
+    
+    Returns:
+    padded_array (np.ndarray): The padded array.
+    """
+    pad_size = target_length - array.shape[axis]
+    if pad_size <= 0:
+        return array
+    npad = [(0, 0)] * array.ndim
+    npad[axis] = (0, pad_size)
+    return np.pad(array, pad_width=npad, mode='constant', constant_values=0)
+
+def pad_zeros_even():
+    pad_size = target_length - array.shape[axis]
+    if pad_size <= 0:
+        return array
+    npad = [(0, 0)] * array.ndim
+    npad[axis] = (0, pad_size)
+    return np.pad(array, pad_width=npad, mode='constant', constant_values=0)
 
