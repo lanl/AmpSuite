@@ -1,0 +1,32 @@
+name: ampsuite-nocuda
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3
+  - netcdf4
+  - cx_oracle
+  - oracle-instant-client
+  - cython
+  - scipy[version='>=1.8']
+  - sqlalchemy
+  - matplotlib
+  - numba
+  - pyproj
+  - tqdm
+  - scikit-learn
+  - jupyter
+  - xarray
+  - ipykernel
+  - pandas
+  - obspy
+  - dask
+  - gmt
+  - pygmt
+  - netcdf4
+  - numpyro
+  - gcc
+  - gxx
+  - pip
+  - pip:
+    - pisces[e1]

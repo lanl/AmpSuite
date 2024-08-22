@@ -1,0 +1,39 @@
+name: ampsuite
+channels:
+  - conda-forge
+  - defaults
+  - pytorch
+  - nvidia
+dependencies:
+  - python=3
+  - netcdf4
+  - cx_oracle
+  - h5py
+  - oracle-instant-client
+  - cython
+  - scipy[version='>=1.8']
+  - sqlalchemy
+  - matplotlib
+  - numba
+  - pyproj
+  - tqdm
+  - scikit-learn
+  - openpyxl
+  - jupyter
+  - xarray
+  - ipykernel
+  - pandas
+  - obspy
+  - dask
+  - gmt
+  - pygmt
+  - ipywidgets
+  - emcee
+  - netcdf4
+  - jaxlib=*=*cuda* 
+  - jax 
+  - cuda-nvcc
+  - tqdm
+  - pip
+  - pip:
+    - pisces[e1]
