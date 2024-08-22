@@ -6,7 +6,7 @@ We welcome contributions to AmpSuite! Every bit helps, and we appreciate your ef
 
 ### 1. File an Issue
 
-If you've found a bug or have a feature request, please [open an issue](https://github.inl.gov/richard-alfaro-diaz-lanl/AmpSuite/issues) on our GitHub repository.
+If you've found a bug or have a feature request, please [open an issue](https://github.com/lanl/AmpSuite/issues) on our GitHub repository.
 
 #### Bug Reports
 

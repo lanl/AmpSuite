@@ -44,4 +44,4 @@ This project is licensed under the [MIT License](LICENSE.md).
 
 ## Contact
 
-For questions or support, please [open an issue](https://github.inl.gov/richard-alfaro-diaz-lanl/AmpSuite/issues) on our GitHub repository.
+For questions or support, please [open an issue](https://github.com/lanl/AmpSuite/issues) on our GitHub repository.
