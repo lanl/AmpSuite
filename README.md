@@ -40,7 +40,7 @@ Contributions to AmpSuite are welcome! Please refer to our [contributing guideli
 
 ## License
 
-This project is licensed under the [MIT License](LICENSE.md).
+This project is licensed under the [BSD-3 License](LICENSE.md).
 
 ## Contact
 
